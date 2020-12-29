@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "repo:init": "npm run repo:clean && node bin/init.mjs",
+    "repo:status": "node bin/status.mjs",
     "repo:add": "node bin/add.mjs",
     "repo:commit": "node bin/commit.mjs",
     "repo:clean": "rm -rf src/.repo"

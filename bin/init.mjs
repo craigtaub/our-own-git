@@ -1,6 +1,7 @@
 import fs from "fs";
 import glob from "glob";
 import crypto from "crypto";
+import { workingDir } from "./util.mjs";
 
 function sha1(object) {
   const string = JSON.stringify(object);
@@ -9,8 +10,7 @@ function sha1(object) {
 
 const init = () => {
   console.log("[init] - start");
-  const cwd = process.cwd();
-  const workingDirectory = cwd + "/src";
+  const workingDirectory = workingDir();
   const files = glob.sync("**/*.txt", { cwd: workingDirectory });
   const indexData = files.reduce((acc, curr) => {
     const contents = fs.readFileSync(`${workingDirectory}/${curr}`, {
