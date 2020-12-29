@@ -1,15 +1,16 @@
 import fs from "fs";
-import { workingDir, hashBlobContentsInFile } from "./util.mjs";
+import {
+  workingDir,
+  hashBlobContentsInFile,
+  getIndexData,
+  updateIndex,
+} from "./util.mjs";
 
 const status = () => {
   console.log("[status] - start");
 
   const workingDirectory = workingDir();
-  const indexData = JSON.parse(
-    fs.readFileSync(`${workingDirectory}/.repo/index`, {
-      encoding: "utf-8",
-    })
-  );
+  const indexData = getIndexData(workingDirectory);
 
   const notStaged = [];
   const notComitted = [];
@@ -35,10 +36,7 @@ const status = () => {
     return acc;
   }, {});
 
-  fs.writeFileSync(
-    `${workingDirectory}/.repo/index`,
-    JSON.stringify(updatedIndexData)
-  );
+  updateIndex(workingDirectory, updatedIndexData);
 
   console.log("\nChanged locally but not staged:");
   notStaged.map((message) => console.log(`- ${message}`));

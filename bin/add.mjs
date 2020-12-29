@@ -1,5 +1,5 @@
 import fs from "fs";
-import { workingDir } from "./util.mjs";
+import { workingDir, getIndexData, updateIndex } from "./util.mjs";
 
 const add = () => {
   console.log("[add] - start");
@@ -8,11 +8,7 @@ const add = () => {
   // explicitly give files e.g. one.txt two/three.txt
   const files = process.argv.slice(2);
 
-  const indexData = JSON.parse(
-    fs.readFileSync(`${workingDirectory}/.repo/index`, {
-      encoding: "utf-8",
-    })
-  );
+  const indexData = getIndexData(workingDirectory);
 
   console.log("[add] - write blob objects");
   const updatedFiles = files.map((file) => {
@@ -50,10 +46,7 @@ const add = () => {
     return acc;
   }, {});
 
-  fs.writeFileSync(
-    `${workingDirectory}/.repo/index`,
-    JSON.stringify(updatedIndexData)
-  );
+  updateIndex(workingDirectory, updatedIndexData);
 };
 
 add();

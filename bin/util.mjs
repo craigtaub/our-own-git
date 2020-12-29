@@ -17,3 +17,18 @@ export const hashBlobContentsInFile = (file) => {
   });
   return sha1({ type: "blob", contents });
 };
+
+export const getIndexData = (workingDirectory) => {
+  return JSON.parse(
+    fs.readFileSync(`${workingDirectory}/.repo/index`, {
+      encoding: "utf-8",
+    })
+  );
+};
+
+export const updateIndex = (workingDirectory, indexData) => {
+  fs.writeFileSync(
+    `${workingDirectory}/.repo/index`,
+    JSON.stringify(indexData)
+  );
+};
