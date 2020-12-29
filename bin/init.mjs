@@ -1,24 +1,17 @@
 import fs from "fs";
 import glob from "glob";
-import crypto from "crypto";
-import { workingDir } from "./util.mjs";
-
-function sha1(object) {
-  const string = JSON.stringify(object);
-  return crypto.createHash("sha1").update(string).digest("hex");
-}
+import { workingDir, hashBlobContentsInFile } from "./util.mjs";
 
 const init = () => {
   console.log("[init] - start");
   const workingDirectory = workingDir();
   const files = glob.sync("**/*.txt", { cwd: workingDirectory });
+
+  // index data, staging and repo are empty
   const indexData = files.reduce((acc, curr) => {
-    const contents = fs.readFileSync(`${workingDirectory}/${curr}`, {
-      encoding: "utf-8",
-    });
-    const hash = sha1({ type: "blob", contents });
+    const hash = hashBlobContentsInFile(`${workingDirectory}/${curr}`);
     acc[curr] = {
-      cwd: sha1({ type: "blob", contents }),
+      cwd: hash,
       staging: "",
       repository: "",
     };

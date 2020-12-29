@@ -36,8 +36,8 @@ const add = () => {
     if (!updatedFiles.find((item) => item.file === curr)) {
       acc[curr] = {
         cwd: indexData[curr].cwd,
-        staging: "",
-        repository: "",
+        staging: indexData[curr].staging,
+        repository: indexData[curr].repository,
       };
       return acc;
     }
@@ -45,7 +45,7 @@ const add = () => {
     acc[curr] = {
       cwd: indexData[curr].cwd,
       staging: updatedFiles.find((item) => item.file === curr).hash,
-      repository: "",
+      repository: indexData[curr].repository,
     };
     return acc;
   }, {});

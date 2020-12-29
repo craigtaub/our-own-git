@@ -1,3 +1,4 @@
 # our-own-git
 
-- `/stubs` is current working directory
+- `/src` -> location of working directory / application
+- `/bin` -> location of version control
