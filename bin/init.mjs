@@ -26,7 +26,10 @@ const init = () => {
   }, {});
   console.log("[init] - write .repo");
   fs.mkdirSync(`${workingDirectory}/.repo`);
-  fs.writeFileSync(`${workingDirectory}/.repo/index`);
+  fs.writeFileSync(
+    `${workingDirectory}/.repo/index`,
+    JSON.stringify(indexData)
+  );
   fs.writeFileSync(`${workingDirectory}/.repo/HEAD`);
   fs.mkdirSync(`${workingDirectory}/.repo/objects`);
 };
