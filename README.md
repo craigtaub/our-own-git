@@ -2,7 +2,7 @@
 
 Git in <100 lines of code.
 
-## Covered
+## Included
 
 - repository
 - working directory
@@ -11,7 +11,7 @@ Git in <100 lines of code.
 - status checks
 - comparing change chunks
 
-## Not includes
+## Not included
 
 - packfiles
 - deltas
