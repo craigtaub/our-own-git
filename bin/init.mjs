@@ -7,7 +7,7 @@ const init = () => {
   const workingDirectory = workingDir();
   const files = glob.sync("**/*.txt", { cwd: workingDirectory });
 
-  // index data, staging and repo are empty
+  console.log("[init] - build index data");
   const indexData = files.reduce((acc, curr) => {
     const hash = hashBlobContentsInFile(`${workingDirectory}/${curr}`);
     acc[curr] = {
@@ -17,6 +17,7 @@ const init = () => {
     };
     return acc;
   }, {});
+
   console.log("[init] - write .repo");
   fs.mkdirSync(`${workingDirectory}/.repo`);
   updateIndex(workingDirectory, indexData);

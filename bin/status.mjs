@@ -12,6 +12,7 @@ const status = () => {
   const workingDirectory = workingDir();
   const indexData = getIndexData(workingDirectory);
 
+  console.log("[status] - process updated index data");
   const notStaged = [];
   const notComitted = [];
   const updatedIndexData = Object.keys(indexData).reduce((acc, curr) => {
@@ -36,6 +37,7 @@ const status = () => {
     return acc;
   }, {});
 
+  console.log("[status] - update index");
   updateIndex(workingDirectory, updatedIndexData);
 
   console.log("\nChanged locally but not staged:");

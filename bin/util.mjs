@@ -12,17 +12,13 @@ export const sha1 = (object) => {
 };
 
 export const hashBlobContentsInFile = (file) => {
-  const contents = fs.readFileSync(file, {
-    encoding: "utf-8",
-  });
+  const contents = fs.readFileSync(file, { encoding: "utf-8" });
   return sha1({ type: "blob", contents });
 };
 
 export const getIndexData = (workingDirectory) => {
   return JSON.parse(
-    fs.readFileSync(`${workingDirectory}/.repo/index`, {
-      encoding: "utf-8",
-    })
+    fs.readFileSync(`${workingDirectory}/.repo/index`, { encoding: "utf-8" })
   );
 };
 

@@ -1,5 +1,6 @@
 const exec = require("child_process").exec;
 const fs = require("fs");
+const zlib = require("zlib");
 
 describe("Integration tests", () => {
   afterAll(async (done) => {
@@ -51,23 +52,21 @@ describe("Integration tests", () => {
   });
 
   describe("repo:add", () => {
-    it("should create blob objects inside 2 char directories of content hash", async (done) => {
+    it("should create blob objects, inside 2 char directories, with content compressed", async (done) => {
       await exec("npm run repo:add one.txt two/three.txt", (err, output) => {
-        const a = fs.readFileSync(
-          "src/.repo/objects/20/edd9580b6dfe9ee477979b4aca59c44770063b",
-          {
-            encoding: "utf-8",
-          }
+        const rawA = fs.readFileSync(
+          "src/.repo/objects/20/edd9580b6dfe9ee477979b4aca59c44770063b"
         );
-        const b = fs.readFileSync(
-          "src/.repo/objects/c3/fbd8e016f0ba53befe9a3dbdadf06adab65ade",
-          {
-            encoding: "utf-8",
-          }
+        const rawB = fs.readFileSync(
+          "src/.repo/objects/c3/fbd8e016f0ba53befe9a3dbdadf06adab65ade"
         );
 
-        expect(a).toEqual("20edd9580b6dfe9ee477979b4aca59c44770063b");
-        expect(b).toEqual("c3fbd8e016f0ba53befe9a3dbdadf06adab65ade");
+        // compressed via DEFLATE, test via uncompress
+        const a = zlib.inflateSync(new Buffer(rawA)).toString();
+        const b = zlib.inflateSync(new Buffer(rawB)).toString();
+
+        expect(a).toEqual("first file\n");
+        expect(b).toEqual("third file\n");
         done();
       });
     });

@@ -1,5 +1,6 @@
 import fs from "fs";
 import { workingDir, getIndexData, updateIndex } from "./util.mjs";
+import zlib from "zlib";
 
 const add = () => {
   console.log("[add] - start");
@@ -16,10 +17,16 @@ const add = () => {
     const blobDir = hash.substring(0, 2);
     const blobObject = hash.substring(2);
     fs.mkdirSync(`${workingDirectory}/.repo/objects/${blobDir}`);
+
+    const rawContents = fs.readFileSync(`${workingDirectory}/${file}`, {
+      encoding: "utf-8",
+    });
+    const compressedContents = zlib.deflateSync(rawContents);
     fs.writeFileSync(
       `${workingDirectory}/.repo/objects/${blobDir}/${blobObject}`,
-      hash
+      compressedContents
     );
+
     return {
       file,
       hash,
