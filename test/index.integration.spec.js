@@ -2,6 +2,8 @@ const exec = require("child_process").exec;
 const fs = require("fs");
 const zlib = require("zlib");
 
+const sha1Regex = /^[a-zA-Z0-9\-_]{0,40}$/;
+
 describe("Integration tests", () => {
   afterAll(async (done) => {
     // clean up after
@@ -10,31 +12,24 @@ describe("Integration tests", () => {
     });
   });
   describe("repo:init", () => {
-    it("created index with current working directory files and cwd hash", async (done) => {
-      const expectedIndex = {
-        "one.txt": {
-          cwd: "20edd9580b6dfe9ee477979b4aca59c44770063b",
-          staging: "",
-          repository: "",
-        },
-        "two/four.txt": {
-          cwd: "3596117ef1e8dba38ceeabb2101192938b6313ad",
-          staging: "",
-          repository: "",
-        },
-        "two/three.txt": {
-          cwd: "c3fbd8e016f0ba53befe9a3dbdadf06adab65ade",
-          staging: "",
-          repository: "",
-        },
-      };
+    it("created index with current working directory files and cwd stat() hash", async (done) => {
       await exec("npm run repo:init", (err, _) => {
         const index = JSON.parse(
           fs.readFileSync("src/.repo/index", {
             encoding: "utf-8",
           })
         );
-        expect(index).toEqual(expectedIndex);
+        const keys = Object.keys(index);
+        expect(keys).toEqual(["one.txt", "two/four.txt", "two/three.txt"]);
+        expect(index["one.txt"].cwd).toMatch(sha1Regex);
+        expect(index["one.txt"].staging).toEqual("");
+        expect(index["one.txt"].repository).toEqual("");
+        expect(index["two/three.txt"].cwd).toMatch(sha1Regex);
+        expect(index["two/three.txt"].staging).toEqual("");
+        expect(index["two/three.txt"].repository).toEqual("");
+        expect(index["two/four.txt"].cwd).toMatch(sha1Regex);
+        expect(index["two/four.txt"].staging).toEqual("");
+        expect(index["two/four.txt"].repository).toEqual("");
         done();
       });
     });
@@ -72,29 +67,22 @@ describe("Integration tests", () => {
     });
 
     it("should update repo index, move items to staged", () => {
-      const expectedIndex = {
-        "one.txt": {
-          cwd: "20edd9580b6dfe9ee477979b4aca59c44770063b",
-          staging: "20edd9580b6dfe9ee477979b4aca59c44770063b",
-          repository: "",
-        },
-        "two/four.txt": {
-          cwd: "3596117ef1e8dba38ceeabb2101192938b6313ad",
-          staging: "",
-          repository: "",
-        },
-        "two/three.txt": {
-          cwd: "c3fbd8e016f0ba53befe9a3dbdadf06adab65ade",
-          staging: "c3fbd8e016f0ba53befe9a3dbdadf06adab65ade",
-          repository: "",
-        },
-      };
       const index = JSON.parse(
         fs.readFileSync("src/.repo/index", {
           encoding: "utf-8",
         })
       );
-      expect(index).toEqual(expectedIndex);
+      const keys = Object.keys(index);
+      expect(keys).toEqual(["one.txt", "two/four.txt", "two/three.txt"]);
+      expect(index["one.txt"].cwd).toMatch(sha1Regex);
+      expect(index["one.txt"].staging).toMatch(sha1Regex);
+      expect(index["one.txt"].repository).toEqual("");
+      expect(index["two/three.txt"].cwd).toMatch(sha1Regex);
+      expect(index["two/three.txt"].staging).toMatch(sha1Regex);
+      expect(index["two/three.txt"].repository).toEqual("");
+      expect(index["two/four.txt"].cwd).toMatch(sha1Regex);
+      expect(index["two/four.txt"].staging).toEqual("");
+      expect(index["two/four.txt"].repository).toEqual("");
     });
   });
 

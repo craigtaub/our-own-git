@@ -1,6 +1,6 @@
 import fs from "fs";
 import glob from "glob";
-import { workingDir, hashBlobContentsInFile, updateIndex } from "./util.mjs";
+import { workingDir, hashFileStats, updateIndex } from "./util.mjs";
 
 const init = () => {
   console.log("[init] - start");
@@ -9,7 +9,7 @@ const init = () => {
 
   console.log("[init] - build index data");
   const indexData = files.reduce((acc, curr) => {
-    const hash = hashBlobContentsInFile(`${workingDirectory}/${curr}`);
+    const hash = hashFileStats(`${workingDirectory}/${curr}`);
     acc[curr] = {
       cwd: hash,
       staging: "",

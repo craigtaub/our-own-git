@@ -1,6 +1,12 @@
 import fs from "fs";
-import { workingDir, getIndexData, updateIndex } from "./util.mjs";
-import zlib from "zlib";
+import {
+  workingDir,
+  getIndexData,
+  updateIndex,
+  hashBlobContentsInFile,
+  compressBlobContentsInFile,
+  hashFileStats,
+} from "./util.mjs";
 
 const add = () => {
   console.log("[add] - start");
@@ -13,19 +19,23 @@ const add = () => {
 
   console.log("[add] - write blob objects");
   const updatedFiles = files.map((file) => {
-    const hash = indexData[file].cwd;
-    const blobDir = hash.substring(0, 2);
-    const blobObject = hash.substring(2);
+    // get contents SHA-1 and use for dir and filename
+    const blobHash = hashBlobContentsInFile(`${workingDirectory}/${file}`);
+    const blobDir = blobHash.substring(0, 2);
+    const blobObject = blobHash.substring(2);
     fs.mkdirSync(`${workingDirectory}/.repo/objects/${blobDir}`);
 
-    const rawContents = fs.readFileSync(`${workingDirectory}/${file}`, {
-      encoding: "utf-8",
-    });
-    const compressedContents = zlib.deflateSync(rawContents);
+    // get DEFLATED and use for content
+    const blobCompressed = compressBlobContentsInFile(
+      `${workingDirectory}/${file}`
+    );
     fs.writeFileSync(
       `${workingDirectory}/.repo/objects/${blobDir}/${blobObject}`,
-      compressedContents
+      blobCompressed
     );
+
+    // get stat() SHA-1
+    const hash = hashFileStats(`${workingDirectory}/${file}`);
 
     return {
       file,

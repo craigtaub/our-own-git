@@ -1,7 +1,7 @@
 import fs from "fs";
 import {
   workingDir,
-  hashBlobContentsInFile,
+  hashFileStats,
   getIndexData,
   updateIndex,
 } from "./util.mjs";
@@ -16,7 +16,7 @@ const status = () => {
   const notStaged = [];
   const notComitted = [];
   const updatedIndexData = Object.keys(indexData).reduce((acc, curr) => {
-    const hash = hashBlobContentsInFile(`${workingDirectory}/${curr}`);
+    const hash = hashFileStats(`${workingDirectory}/${curr}`);
     if (hash !== indexData[curr].cwd) {
       acc[curr] = {
         cwd: hash,
