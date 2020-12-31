@@ -101,10 +101,35 @@ describe("Integration tests", () => {
       const expectedStatusAfterOneUpdate =
         "Changed locally but not staged:\\n- one.txt\\n- two/four.txt\\n\\nStaged but not comitted:\\n- two/three.txt";
 
-      fs.writeFileSync("src/one.txt", "updated content here");
+      fs.writeFileSync("src/one.txt", "updated content here\n");
       await exec("npm run repo:status", (err, output) => {
         expect(JSON.stringify(output)).toContain(expectedStatusAfterOneUpdate);
-        fs.writeFileSync("src/one.txt", "first file\n");
+
+        done();
+      });
+    });
+
+    it("if re-add updated file one.txt should update object", async (done) => {
+      await exec("npm run repo:add one.txt", async (err, _) => {
+        const rawA = fs.readFileSync(
+          "src/.repo/objects/4d/642272c78bb0d9b3861e4b04295c1aaba65dc2"
+        );
+
+        // compressed via DEFLATE, test via uncompress
+        const a = zlib.inflateSync(new Buffer(rawA)).toString();
+
+        expect(a).toEqual("updated content here\n");
+        done();
+      });
+    });
+
+    it("re-added file should show in status with old added file", async (done) => {
+      const expectedStatusAfterAdd =
+        "Changed locally but not staged:\\n- two/four.txt\\n\\nStaged but not comitted:\\n- one.txt\\n- two/three.txt";
+
+      await exec("npm run repo:status", (err, output) => {
+        expect(JSON.stringify(output)).toContain(expectedStatusAfterAdd);
+        fs.writeFileSync("src/one.txt", "first file\n"); // put file back. repo  is nuked
         done();
       });
     });
