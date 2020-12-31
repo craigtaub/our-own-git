@@ -96,7 +96,8 @@ describe("Integration tests", () => {
         done();
       });
     });
-
+  });
+  describe("update file status and add", () => {
     it("if update one.txt locally flag as local change", async (done) => {
       const expectedStatusAfterOneUpdate =
         "Changed locally but not staged:\\n- one.txt\\n- two/four.txt\\n\\nStaged but not comitted:\\n- two/three.txt";
