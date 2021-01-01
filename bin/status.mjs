@@ -9,14 +9,13 @@ import {
 const status = () => {
   console.log("[status] - start");
 
-  const workingDirectory = workingDir();
-  const indexData = getIndexData(workingDirectory);
+  const indexData = getIndexData();
 
   console.log("[status] - process updated index data");
   const notStaged = [];
   const notComitted = [];
   const updatedIndexData = Object.keys(indexData).reduce((acc, curr) => {
-    const hash = hashFileStats(`${workingDirectory}/${curr}`);
+    const hash = hashFileStats(curr);
     if (hash !== indexData[curr].cwd) {
       acc[curr] = {
         cwd: hash,
@@ -38,7 +37,7 @@ const status = () => {
   }, {});
 
   console.log("[status] - update index");
-  updateIndex(workingDirectory, updatedIndexData);
+  updateIndex(updatedIndexData);
 
   console.log("\nChanged locally but not staged:");
   notStaged.map((message) => console.log(`- ${message}`));

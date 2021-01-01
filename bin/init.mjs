@@ -9,7 +9,7 @@ const init = () => {
 
   console.log("[init] - build index data");
   const indexData = files.reduce((acc, curr) => {
-    const hash = hashFileStats(`${workingDirectory}/${curr}`);
+    const hash = hashFileStats(curr);
     acc[curr] = {
       cwd: hash,
       staging: "",
@@ -20,7 +20,7 @@ const init = () => {
 
   console.log("[init] - write .repo");
   fs.mkdirSync(`${workingDirectory}/.repo`);
-  updateIndex(workingDirectory, indexData);
+  updateIndex(indexData);
   fs.writeFileSync(`${workingDirectory}/.repo/HEAD`);
   fs.mkdirSync(`${workingDirectory}/.repo/objects`);
 };

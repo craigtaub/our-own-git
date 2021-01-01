@@ -15,27 +15,25 @@ const add = () => {
   // explicitly give files e.g. one.txt two/three.txt
   const files = process.argv.slice(2);
 
-  const indexData = getIndexData(workingDirectory);
+  const indexData = getIndexData();
 
   console.log("[add] - write blob objects");
   const updatedFiles = files.map((file) => {
     // get contents SHA-1 and use for dir and filename
-    const blobHash = hashBlobContentsInFile(`${workingDirectory}/${file}`);
+    const blobHash = hashBlobContentsInFile(file);
     const blobDir = blobHash.substring(0, 2);
     const blobObject = blobHash.substring(2);
     fs.mkdirSync(`${workingDirectory}/.repo/objects/${blobDir}`);
 
     // get DEFLATED and use for content
-    const blobCompressed = compressBlobContentsInFile(
-      `${workingDirectory}/${file}`
-    );
+    const blobCompressed = compressBlobContentsInFile(file);
     fs.writeFileSync(
       `${workingDirectory}/.repo/objects/${blobDir}/${blobObject}`,
       blobCompressed
     );
 
     // get stat() SHA-1
-    const hash = hashFileStats(`${workingDirectory}/${file}`);
+    const hash = hashFileStats(file);
 
     return {
       file,
@@ -63,7 +61,7 @@ const add = () => {
     return acc;
   }, {});
 
-  updateIndex(workingDirectory, updatedIndexData);
+  updateIndex(updatedIndexData);
 };
 
 add();
