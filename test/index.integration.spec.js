@@ -98,6 +98,10 @@ describe("Integration tests", () => {
     });
   });
   describe("update file status and add", () => {
+    afterAll(() => {
+      fs.writeFileSync("src/one.txt", "first file\n"); // put file back. repo  is nuked
+    });
+
     it("if update one.txt locally flag as local change", async (done) => {
       const expectedStatusAfterOneUpdate =
         "Changed locally but not staged:\\n- one.txt\\n- two/four.txt\\n\\nStaged but not comitted:\\n- two/three.txt";
@@ -130,7 +134,6 @@ describe("Integration tests", () => {
 
       await exec("npm run repo:status", (err, output) => {
         expect(JSON.stringify(output)).toContain(expectedStatusAfterAdd);
-        fs.writeFileSync("src/one.txt", "first file\n"); // put file back. repo  is nuked
         done();
       });
     });

@@ -23,6 +23,8 @@ const add = () => {
     const blobHash = hashBlobContentsInFile(file);
     const blobDir = blobHash.substring(0, 2);
     const blobObject = blobHash.substring(2);
+
+    // TODO - check exists first - for re-adding file with earlier contents
     fs.mkdirSync(`${workingDirectory}/.repo/objects/${blobDir}`);
 
     // get DEFLATED and use for content
