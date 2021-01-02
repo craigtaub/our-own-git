@@ -138,4 +138,42 @@ describe("Integration tests", () => {
       });
     });
   });
+
+  describe("repo:commit", () => {
+    beforeAll(async (done) => {
+      // add two/four.txt so 2 items in tree object
+      await exec("npm run repo:add two/four.txt", (err, output) => {
+        done();
+      });
+    });
+    it("should create tree object, inside 2 char directories, with content compressed", async (done) => {
+      await exec("npm run repo:commit", (err, output) => {
+        console.log("3");
+        console.log("output", output);
+        const rawA = fs.readFileSync(
+          "src/.repo/objects/88/60e69ea1829e9665307b09419c3917e2d65899"
+        );
+
+        // compressed via DEFLATE, test via uncompress
+        const a = zlib.inflateSync(new Buffer(rawA)).toString();
+
+        expect(a).toEqual(
+          JSON.stringify([
+            {
+              type: "blob",
+              file: "two/four.txt",
+              hash: "3596117ef1e8dba38ceeabb2101192938b6313ad",
+            },
+            {
+              type: "blob",
+              file: "two/three.txt",
+              hash: "c3fbd8e016f0ba53befe9a3dbdadf06adab65ade",
+            },
+          ])
+        );
+
+        done();
+      });
+    });
+  });
 });
