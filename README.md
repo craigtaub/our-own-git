@@ -9,10 +9,10 @@ Git in <100 lines of code.
 - staging
 - comitting
 - status checks
-- comparing change chunks
 
 ## Not included
 
+- comparing change chunks
 - packfiles
 - deltas
 - branches

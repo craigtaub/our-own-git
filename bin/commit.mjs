@@ -66,6 +66,7 @@ const commit = () => {
       acc.push([clone]);
     } else {
       // key so pushed with any previous tree
+      // TODO clean
       acc[key].push(curr);
     }
     return acc;
