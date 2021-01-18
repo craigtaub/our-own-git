@@ -146,31 +146,102 @@ describe("Integration tests", () => {
         done();
       });
     });
-    it("should create tree object, inside 2 char directories, with content compressed", async (done) => {
+
+    it("should create tree and commit object and update HEAD and index", async (done) => {
+      // dont need to put index and HEAD back. cleans at end
       await exec("npm run repo:commit", (err, output) => {
-        console.log("3");
-        console.log("output", output);
-        const rawA = fs.readFileSync(
-          "src/.repo/objects/88/60e69ea1829e9665307b09419c3917e2d65899"
+        // console.log("output", output);
+
+        // commit object
+        const commitObject = fs.readFileSync(
+          "src/.repo/objects/2d/6332ee18e26deda1658e6e463c6d09f5782f0c"
+        );
+        // compressed via DEFLATE, test via uncompress
+        const a = zlib.inflateSync(new Buffer(commitObject)).toString();
+        expect(a).toEqual(
+          JSON.stringify({
+            tree: "de1ce49887d601e20f1f39e43440805b41adae88",
+            parent: null,
+            author: "CRAIG",
+            committor: "CRAIG",
+            message: "Hardcoded message",
+          })
         );
 
-        // compressed via DEFLATE, test via uncompress
-        const a = zlib.inflateSync(new Buffer(rawA)).toString();
-
-        expect(a).toEqual(
+        // root tree object
+        const rootTreeObject = fs.readFileSync(
+          "src/.repo/objects/de/1ce49887d601e20f1f39e43440805b41adae88"
+        );
+        const b = zlib.inflateSync(new Buffer(rootTreeObject)).toString();
+        console.log("rootTreeObject", b);
+        expect(b).toEqual(
           JSON.stringify([
             {
+              name: "two",
+              type: "tree",
+              hash: "e09bf38c8f2087c42fc178be46514c86f6bf6f0f", // points at tree /two below
+            },
+            {
+              name: "one.txt",
               type: "blob",
-              file: "two/four.txt",
+              hash: "20edd9580b6dfe9ee477979b4aca59c44770063b",
+            },
+          ])
+        );
+
+        // fs.readdir("src/.repo/objects", (err, files) => {
+        //   files.forEach((top) => {
+        //     fs.readdir("src/.repo/objects/" + top, (err, files) => {
+        //       files.forEach((bottom) => {
+        //         console.log("files:", top, bottom);
+        //       });
+        //     });
+        //   });
+        // });
+
+        // 'two' tree object
+        const folderTreeObject = fs.readFileSync(
+          "src/.repo/objects/e0/9bf38c8f2087c42fc178be46514c86f6bf6f0f"
+        );
+        const c = zlib.inflateSync(new Buffer(folderTreeObject)).toString();
+        expect(c).toEqual(
+          JSON.stringify([
+            {
+              name: "four.txt",
+              type: "blob",
               hash: "3596117ef1e8dba38ceeabb2101192938b6313ad",
             },
             {
+              name: "three.txt",
               type: "blob",
-              file: "two/three.txt",
               hash: "c3fbd8e016f0ba53befe9a3dbdadf06adab65ade",
             },
           ])
         );
+
+        // check HEAD for commit hash
+        const head = fs.readFileSync("src/.repo/HEAD", {
+          encoding: "utf-8",
+        });
+        expect(head).toEqual("2d6332ee18e26deda1658e6e463c6d09f5782f0c");
+
+        // check index
+        const index = JSON.parse(
+          fs.readFileSync("src/.repo/index", {
+            encoding: "utf-8",
+          })
+        );
+        const keys = Object.keys(index);
+        expect(keys).toEqual(["one.txt", "two/four.txt", "two/three.txt"]);
+        expect(index["one.txt"].cwd).toMatch(sha1Regex);
+        expect(index["one.txt"].staging).toMatch(sha1Regex);
+        expect(index["one.txt"].repository).toMatch(sha1Regex);
+        expect(index["two/three.txt"].cwd).toMatch(sha1Regex);
+        expect(index["two/three.txt"].staging).toMatch(sha1Regex);
+        expect(index["two/three.txt"].repository).toMatch(sha1Regex);
+        expect(index["two/four.txt"].cwd).toMatch(sha1Regex);
+        expect(index["two/four.txt"].staging).toMatch(sha1Regex);
+        expect(index["two/four.txt"].repository).toMatch(sha1Regex);
 
         done();
       });

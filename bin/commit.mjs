@@ -1,50 +1,43 @@
-import fs from "fs";
+import fs, { access } from "fs";
 import {
   getIndexData,
   hashBlobContentsInFile,
   sha1,
   workingDir,
+  createTreeObject,
+  getParentCommit,
+  createCommitObject,
+  updateIndex,
 } from "./util.mjs";
 import zlib from "zlib";
+import { type } from "os";
 
 // array of dir (name) and files (children), ordered by bottom-up
 const buildTree = (paths) => {
-  let result = [];
-  let level = { result };
-  paths.forEach((path) => {
-    path.split("/").reduce((r, name, i, a) => {
-      if (!r[name]) {
-        r[name] = { result: [] };
-        r.result.push({ name, children: r[name].result });
-      }
+  return paths.reduce(
+    (parent, path, key) => {
+      path.split("/").reduce((r, name, i, { length }) => {
+        if (!r.children) {
+          r.children = [];
+        }
+        let temp = r.children.find((q) => q.name === name);
+        if (!temp) {
+          temp = { name };
+          if (i + 1 === length) {
+            temp.type = "blob";
+            temp.hash = hashBlobContentsInFile(path);
+          } else {
+            temp.type = "tree";
+          }
+          r.children.push(temp);
+        }
+        return temp;
+      }, parent);
 
-      return r[name];
-    }, level);
-  });
-  return result.reverse();
-};
-
-const processTree = (tree, parent) => {
-  console.log("[commit] - process tree: ", tree.name);
-  const { name, children } = tree;
-
-  // process from bottom up
-  if (children && children.length > 0) {
-    return children.map((child) => {
-      return processTree(child, tree.name);
-    });
-  } else {
-    // only dirs hold files, so therefore file
-    if (parent) {
-      return {
-        type: "blob",
-        file: `${parent}/${name}`,
-        hash: hashBlobContentsInFile(`${parent}/${name}`),
-      };
-    } else {
-      return { type: "blob", file: name, hash: hashBlobContentsInFile(name) };
-    }
-  }
+      return parent;
+    },
+    { children: [] }
+  ).children;
 };
 
 const commit = () => {
@@ -52,32 +45,75 @@ const commit = () => {
   const workingDirectory = workingDir();
   const indexData = getIndexData();
   // build tree for files in staging or comitted, excluded working dir only
+  // TODO - if comitted already then dont recreate tree?? PROB chek first
   const paths = Object.keys(indexData).filter(
     (item) => indexData[item].staging || indexData[item].repository
   );
 
-  const trees = buildTree(paths);
+  // console.log(`[commit] - paths`, paths);
+  const rootTrees = buildTree(paths);
+  // console.log(`[commit] - rootTrees`, rootTrees);
 
-  trees.map((tree) => {
-    const processed = processTree(tree);
-    if (Array.isArray(processed)) {
-      // array is tree (list of blob objects). create tree object from array
-      // TIDY ----
-      const stringContents = JSON.stringify(processed);
-      const treeHash = sha1(stringContents);
-      const treeDir = treeHash.substring(0, 2);
-      const treeObject = treeHash.substring(2);
-      const treeCompressed = zlib.deflateSync(stringContents);
-      fs.mkdirSync(`${workingDirectory}/.repo/objects/${treeDir}`);
-      fs.writeFileSync(
-        `${workingDirectory}/.repo/objects/${treeDir}/${treeObject}`,
-        treeCompressed
-      );
-      // TIDY ----
+  const flattenedTrees = rootTrees.reverse().reduce((acc, curr, key) => {
+    if (curr.children) {
+      // tree
+      const hash = createTreeObject(curr.children);
+      // console.log("[commit] create tree for children", hash);
+      const clone = Object.assign({}, curr);
+      delete clone.children;
+      clone.hash = hash;
+      acc.push(curr.children); // add children to flattened
+      acc.push([clone]);
     } else {
-      // object is blob. blobs objects already exist
+      // key so pushed with any previous tree
+      acc[key].push(curr);
     }
-  });
+    return acc;
+  }, []);
+  // console.log(`[commit] - flattenedTrees`, flattenedTrees);
+
+  // create tree object for root
+  const rootTree = flattenedTrees.reverse()[0];
+  // console.log("[commit] - rootTree", rootTree);
+  const treeForCommit = createTreeObject(rootTree);
+  // console.log("[commit] - treeForCommit", treeForCommit);
+
+  const parent = getParentCommit();
+  // console.log("[commit] - parent", parent);
+
+  const commit = {
+    tree: treeForCommit,
+    parent: parent === "undefined" ? null : parent,
+    author: "CRAIG",
+    committor: "CRAIG",
+    message: "Hardcoded message",
+  };
+
+  // create commit
+  const commitHash = createCommitObject(commit);
+  // console.log("[commit] - commitHash", commitHash);
+
+  // update index
+  // - if new files, nothing in repo
+  // - if old file but updated - staging wont match repo
+  // - cwd->staging is optional. staging->repo is not.
+  const updatedIndexData = Object.keys(indexData).reduce((acc, curr) => {
+    const { cwd, staging, repository } = indexData[curr];
+    let updatedRepo = repository;
+    if (staging !== repository) {
+      updatedRepo = staging;
+    }
+    acc[curr] = {
+      cwd: indexData[curr].cwd,
+      staging: indexData[curr].staging,
+      repository: updatedRepo,
+    };
+    return acc;
+  }, {});
+  updateIndex(updatedIndexData);
+
+  // update head, latest commit
+  fs.writeFileSync(`${workingDirectory}/.repo/HEAD`, commitHash);
 };
 
 commit();
