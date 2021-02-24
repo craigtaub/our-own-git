@@ -26,7 +26,7 @@ Git in <100 lines of code.
 - `npm run repo:init` -> initialise repository
 - `npm run repo:status` -> changes local vs staging vs comitted
 - `npm run repo:add` -> add files to staging
-- `npm run repo:commit` -> commit staged changes **TODO**
+- `npm run repo:commit` -> commit staged changes
 - `npm run repo:diff` -> show changes for file against that comitted **TODO**
 
 ## Files
