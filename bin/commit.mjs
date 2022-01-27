@@ -67,7 +67,7 @@ const commit = () => {
     } else {
       // key so pushed with any previous tree
       // TODO clean
-      acc[key].push(curr);
+      acc.push(curr);
     }
     return acc;
   }, []);
