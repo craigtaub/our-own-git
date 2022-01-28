@@ -1,3 +1,5 @@
+//damn its a modern code
+
 import fs from "fs";
 import {
   workingDir,
@@ -16,6 +18,7 @@ const status = () => {
   const notComitted = [];
   const updatedIndexData = Object.keys(indexData).reduce((acc, curr) => {
     const hash = hashFileStats(curr);
+    console.log(hash);
     if (hash !== indexData[curr].cwd) {
       acc[curr] = {
         cwd: hash,
@@ -27,6 +30,7 @@ const status = () => {
       if (indexData[curr].cwd !== indexData[curr].staging) {
         notStaged.push(curr);
         // THIS OK??
+        // i like really didnt get this part
       } else if (indexData[curr].staging !== indexData[curr].repository) {
         notComitted.push(curr);
       }

@@ -14,8 +14,7 @@ import { type } from "os";
 
 // array of dir (name) and files (children), ordered by bottom-up
 const buildTree = (paths) => {
-  return paths.reduce(
-    (parent, path, key) => {
+  return paths.reduce( (parent, path, key) => {
       path.split("/").reduce((r, name, i, { length }) => {
         if (!r.children) {
           r.children = [];
@@ -52,6 +51,7 @@ const commit = () => {
 
   // console.log(`[commit] - paths`, paths);
   const rootTrees = buildTree(paths);
+  console.log(rootTrees);
   // console.log(`[commit] - rootTrees`, rootTrees);
 
   const flattenedTrees = rootTrees.reverse().reduce((acc, curr, key) => {
@@ -67,7 +67,7 @@ const commit = () => {
     } else {
       // key so pushed with any previous tree
       // TODO clean
-      acc[key].push(curr);
+      acc.push(curr);
     }
     return acc;
   }, []);

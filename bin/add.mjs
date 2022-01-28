@@ -1,3 +1,4 @@
+
 import fs from "fs";
 import {
   workingDir,
@@ -58,7 +59,7 @@ const add = () => {
     acc[curr] = {
       cwd: indexData[curr].cwd,
       staging: updatedFiles.find((item) => item.file === curr).hash,
-      repository: indexData[curr].repository,
+      repository: indexData[curr].repository
     };
     return acc;
   }, {});
